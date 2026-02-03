@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Extempore Topic Selection</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+body{
+  font-family: Arial, sans-serif;
+  background:#f4f6f8;
+  padding:20px;
+}
+.container{
+  max-width:600px;
+  margin:auto;
+  background:#fff;
+  padding:25px;
+  border-radius:8px;
+  box-shadow:0 0 12px rgba(0,0,0,0.1);
+}
+h2{text-align:center;}
+label{font-weight:bold;margin-top:15px;display:block;}
+select,button{
+  width:100%;
+  padding:10px;
+  margin-top:8px;
+}
+button{
+  background:#007bff;
+  color:#fff;
+  border:none;
+  cursor:pointer;
+}
+button:disabled{background:#888;}
+.msg{
+  margin-top:15px;
+  text-align:center;
+  font-weight:bold;
+}
+.locked{color:red;}
+.success{color:green;}
+</style>
+</head>
+<body>
+
+<div class="container">
+<h2>Extempore Topic Selection</h2>
+
+<label>Roll Number</label>
+<select id="roll"></select>
+
+<label>Student Name</label>
+<input id="name" disabled>
+
+<label>Topic</label>
+<select id="topic"></select>
+
+<button onclick="submitChoice()">Submit</button>
+<div class="msg" id="msg"></div>
+</div>
+
+<script>
+/* ===== STUDENTS ===== */
+const students = {
+"1":"Harshita Arya","2":"Kumari Shreya","3":"Rishav Saw","4":"Himanshu Kumar",
+"5":"Akmal Karim","6":"Anooz Kumar Burnwal","7":"Nitish Kumar","8":"Abhijit Rana",
+"9":"Ankit Kumar","10":"Shruti","11":"Aryan Raj","12":"Himanshu Kumar Sahu",
+"13":"Vamsi Sinha","14":"Ankit Kumar","15":"Mohammad Masab Khan",
+"16":"KANISTH SHARMA","17":"AAYUSH RAJ","18":"ARYAN SHARMA","19":"VAIBHAV KUMAR",
+"20":"ABHINAV KASHYAP","21":"SURYAKANT BHAMBU","22":"SWAMI HARSH RAJ",
+"23":"NAMAN TIBREWAL","24":"SACHIN KUMAR","25":"MAYANK KUMAR TIWARI",
+"26":"ANANYA TIRKEY","27":"SYED FAIZAN SAFDAR","28":"B.THARUN KUMAR REDDY",
+"29":"RISHIT KUMAR","30":"ATHARVA RAJ","31":"YASH PRIYADARSHI",
+"32":"SHRISHTI KUMARI","33":"Pratik Tanty","34":"PIYUSH PRANJAL",
+"35":"SIDHORISHI DAS","36":"P SAMPAT GANESH","37":"KSHITIJ KUMAR",
+"38":"ABHINAV KUMAR GAUTAM","39":"AADITYA DUBEY","40":"ASHWIN RAJ",
+"41":"AKSHATH BARUA","42":"SANJAYKUMAR S S","43":"SUJAL MINZ",
+"44":"SOUMYA KUMARI","45":"ANAND GOPAL TIWARY","46":"YUVRAJ SINHA",
+"47":"SIDDHARTH RAIPITAM","48":"AYUSH SINGH","49":"HIMANSHU KISHORE",
+"50":"CHANDAN RAJ","51":"ADITYA SRIVASTAVA","52":"KRISHNASHISH",
+"53":"HIMANSHU PRASAD","54":"HRISHI VISHWAKARMA",
+"55":"MANISH KUMAR","56":"AYUSH KUMAR GAUTAM","57":"RISHIK RAJ",
+"58":"VINAYAK DUTTA","59":"ADITYA","60":"BIPUL HARSHIT",
+"61":"KARAN RAJ","62":"ANISH TIRKEY","63":"AAKARSH",
+"64":"CHATRAPATHI RATHOD","65":"RAGHAV GAUR",
+"66":"RIDDHESH SWAPNIL PATWARI","67":"ARPAN ZENITH KUJUR",
+"68":"SIMANT RAJ","69":"ARYAN BENIWAL","70":"HARSHITA BHATT",
+"71":"RISHAV RAJDEEP","72":"SUHANI SHREYA","73":"KANIKA KEDIA",
+"74":"SAI THEJ VERELAPATY","75":"Aniket Kumar","76":"ARCHIT ANAND"
+};
+
+/* ===== TOPICS ===== */
+const topics = [
+"Role of 5G in shaping smart cities","Listening is more important than speaking",
+"Role of engineers in nation building","Is coding more important than core engineering knowledge?",
+"Engineering education in India: strengths and gaps",
+"Role of extracurricular activities in career growth","Hostel life: lessons beyond academics",
+"Pressure of placements on students","Climate change and the role of engineers",
+"Should engineers dream first or plan first?",
+"The more we connect digitally, the more we disconnect personally",
+"Machines can do everything, but can they think?",
+"Body language speaks louder than words","The impact of social media on students",
+"Freedom of speech on social media","Corruption: a social evil",
+"Sustainable development vs rapid industrialization","Start-up culture in India",
+"Entrepreneurship vs corporate jobs","Risk-taking vs job security",
+"Role of creativity in technical fields","Should engineers learn management skills?",
+"Can engineers be good leaders?","Impact of globalisation on careers",
+"Electric vehicles and the future of transport",
+"Climate change and individual responsibility",
+"Success means different things to different people",
+"One invention that changed human life",
+"Time management: skill or habit?","My biggest learning as a student",
+"Fake news and its impact","Cashless economy: advantages and risks",
+"Importance of communication skills for engineers",
+"Fear: friend or enemy?","If I could change one thing in the education system",
+"Leadership qualities in students","Learning from failure",
+"Strengths of today’s youth","Are classics still relevant in the digital age?",
+"Literature as a mirror of society","Are biopics more inspiring than fictional films?",
+"Portrayal of engineers and scientists in films",
+"Should sports be compulsory in engineering colleges?",
+"Technology in sports: fair play or unfair advantage?",
+"Has cinema replaced literature for storytelling?",
+"Do translations dilute literary beauty?","Is poetry losing its audience today?"
+];
+
+const MAX = 3;
+const db = JSON.parse(localStorage.getItem("extempore")) || {};
+
+const rollSel=document.getElementById("roll");
+const nameInp=document.getElementById("name");
+const topicSel=document.getElementById("topic");
+const msg=document.getElementById("msg");
+
+for(let r in students){
+  let o=document.createElement("option");
+  o.value=r; o.text=r;
+  rollSel.appendChild(o);
+}
+
+rollSel.onchange=update;
+update();
+
+function update(){
+  let r=rollSel.value;
+  nameInp.value=students[r];
+
+  if(db[r]){
+    topicSel.innerHTML=`<option>${db[r]}</option>`;
+    topicSel.disabled=true;
+    msg.textContent="Submission locked.";
+    msg.className="msg locked";
+    return;
+  }
+
+  topicSel.disabled=false;
+  msg.textContent="";
+  topicSel.innerHTML="";
+  topics.forEach(t=>{
+    let c=Object.values(db).filter(v=>v===t).length;
+    if(c<MAX){
+      let o=document.createElement("option");
+      o.value=t;
+      o.text=`${t} (${MAX-c} left)`;
+      topicSel.appendChild(o);
+    }
+  });
+}
+
+function submitChoice(){
+  let r=rollSel.value;
+  let t=topicSel.value;
+  if(!t) return;
+  db[r]=t;
+  localStorage.setItem("extempore",JSON.stringify(db));
+  msg.textContent="Topic locked successfully.";
+  msg.className="msg success";
+  update();
+}
+</script>
+
+</body>
+</html>
